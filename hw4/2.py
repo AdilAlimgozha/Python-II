@@ -22,4 +22,4 @@ class Product:
 a = [['apple', 200, 400], ['orange', 150, 350], ['watermelon', 50, 130]]
 
 product = Product("apple", 200, 400)
-print(product.make_purchase(20))#make a check
+print(product.make_purchase(20))
