@@ -128,6 +128,20 @@ def show_ln():
     s += "ln"
     L = Label(window, text = s, font = ('Arial', 30))
     L.place(x = xx, y = yy)
+def show_pi():
+    global xx, yy
+    global s, L
+    L.destroy()
+    s += "pi"
+    L = Label(window, text = s, font = ('Arial', 30))
+    L.place(x = xx, y = yy)
+def erase():
+    global xx, yy
+    global s, L
+    L.destroy()
+    s = ""
+    L = Label(window, text = s, font = ('Arial', 30))
+    L.place(x = xx, y = yy)
 
 def show_result():
     global xx, yy
@@ -137,8 +151,12 @@ def show_result():
         s = '0' + s
     num = re.split('\+|\-|\*|\/|\^', s)
     for i in range(len(num)):
-        if 'sin' not in num[i] and 'cos' not in num[i] and 'tg' not in num[i] and 'ctg' not in num[i] and 'ln' not in num[i]:
+        if 'sin' not in num[i] and 'cos' not in num[i] and 'tg' not in num[i] and 'ctg' not in num[i] and 'ln' not in num[i] and 'pi' not in num[i]:
             num[i] = float(num[i])
+        
+        elif 'pi' in num[i] and len(num[i]) == 2:
+            num[i] = pi
+
         else:
             if 'sin' in num[i]:
                 dig = ''
@@ -146,33 +164,53 @@ def show_result():
                     if x.isdigit() or x == '.':
                         dig += x
                         num[i] = sin(float(dig))
+                    elif x == 'p':
+                        dig += 'pi'
+                        num[i] = sin(pi)
+                        break
             elif 'cos' in num[i]:
                 dig = ''
                 for x in num[i]:
                     if x.isdigit() or x == '.':
                         dig += x
                         num[i] = cos(float(dig))
+                    elif x == 'p':
+                        dig += 'pi'
+                        num[i] = cos(pi)
+                        break
             elif 'tg' in num[i] and 'c' not in num[i]:
                 dig = ''
                 for x in num[i]:
                     if x.isdigit() or x == '.':
                         dig += x
                         num[i] = sin(float(dig))/cos(float(dig))
+                    elif x == 'p':
+                        dig += 'pi'
+                        num[i] = sin(pi)/cos(pi)
+                        break
             elif 'ctg' in num[i]:
                 dig = ''
                 for x in num[i]:
                     if x.isdigit() or x == '.':
                         dig += x
                         num[i] = cos(float(dig))/sin(float(dig))
+                    elif x == 'p':
+                        dig += 'pi'
+                        num[i] = cos(pi)/sin(pi)
+                        break
             elif 'ln' in num[i]:
                 dig = ''
                 for x in num[i]:
                     if x.isdigit() or x == '.':
                         dig += x
-                        num[i] = log(float(dig))  
+                        num[i] = log(float(dig))
+                    elif x == 'p':
+                        dig += 'pi'
+                        num[i] = log(pi)
+                        break
     sign = []
     for x in s:
-        if x.isdigit() == False and x != '.' and x != "s" and x != "i" and x != "n" and x != "c" and x != "o" and x != "t" and x != "g" and x != "l":
+        if x.isdigit() == False and x != '.' and x != "s" and x != "i" and x != "n" and x != "c" and x != "o" and x != "t" and x != "g" and x != "l" and x != 'p':
             sign.append(x)
     calculation_degree(sign, num)
     calculation_mult_div(sign, num)
@@ -182,7 +220,7 @@ def show_result():
     L.place(x = xx, y = yy)
 
 window = Tk()
-window.geometry('600x600')
+window.geometry('500x560')
 L = Label(window, text = '', font = ('Arial', 30))
 L.place(x = xx, y = yy)
 
@@ -208,6 +246,8 @@ tg = Button(window, text = 'tg', font = ('Arial', 9), height = 5, width = 7)
 ctg = Button(window, text = 'ctg', font = ('Arial', 9), height = 5, width = 7)
 ln = Button(window, text = 'ln', font = ('Arial', 9), height = 5, width = 7)
 equal = Button(window, text = '=', font = ('Arial', 30), height = 1, width = 3)
+delete = Button(window, text = 'C', font = ('Arial', 30), height = 1, width = 3)
+pi_num = Button(window, text = 'pi', font = ('Arial', 9), height = 5, width = 7)
 
 r = 240
 c = 0
@@ -235,6 +275,8 @@ tg.place(x = 298, y = 403)
 ctg.place(x = 298, y = 484)
 ln.place(x = 357, y = 240)
 equal.place(x = 160, y = 486)
+delete.place(x = 420, y = 240)
+pi_num.place(x = 357, y = 400)
 
 buttons[0].bind('<Button-1>', lambda event: show_digit(0))
 buttons[1].bind('<Button-1>', lambda event: show_digit(1))
@@ -257,6 +299,8 @@ cosine.bind('<Button-1>', lambda event: show_cosine())
 tg.bind('<Button-1>', lambda event: show_tg())
 ctg.bind('<Button-1>', lambda event: show_ctg())
 ln.bind('<Button-1>', lambda event: show_ln())
+pi_num.bind('<Button-1>', lambda event: show_pi())
 equal.bind('<Button-1>', lambda event: show_result())
+delete.bind('<Button-1>', lambda event: erase())
 
 window.mainloop()
