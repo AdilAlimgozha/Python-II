@@ -1,11 +1,11 @@
 import numpy as np
 
-"""def Z5(M):
+def Z5(M):
     for i in range(len(M)):
         for j in range(len(M[i])):
             if M[i][j] >= 5:
                 M[i][j] = M[i][j] % 5
-    return M"""
+    return M
 
 A = np.array([[2, 4, 1],
             [1, 3, 0],
@@ -13,6 +13,7 @@ A = np.array([[2, 4, 1],
 I = np.identity(3)
 A_t = np.transpose(A)
 adjAA = np.dot(A_t, A)
+Z5(adjAA)
 adjA_list = adjAA.tolist()
 
 for i in range(len(adjA_list)):
