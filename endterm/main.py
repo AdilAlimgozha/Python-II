@@ -2,6 +2,7 @@ from tkinter import *
 from tkinter import ttk
 import tkinter as tk
 import numpy as np
+from mathematical_part import *
 
 class Choose_size:
     def create_w(self):
@@ -48,13 +49,11 @@ Choose the size of a matrix""")
         self.size.append(self.Combo1.get())
         self.size.append(self.Combo2.get())
 
-        print(self.size)
-    
 class Make_matrix:
     def create_w(self):
         self.window = Tk()
         self.window.resizable(False,False)
-        self.window.geometry('600x600+400+100')
+        self.window.geometry('600x700+400+40')
 
         self.L = Label(self.window, text = 'Construct your matrix in Z5 (only 0, 1, 2, 3, 4 numbers allowed)')
         self.L.place(x = 120, y = 20)
@@ -64,7 +63,6 @@ class Make_matrix:
 
         self.rows = int(choose_size.size[0])
         self.cols = int(choose_size.size[1])
-        print(self.rows, self.cols)
 
         self.entries_list = []
         for i in range(self.rows):
@@ -104,10 +102,9 @@ class Make_matrix:
             if rowA != []:
                 self.A.append(rowA)
         else:
+            self.npA = np.array(self.A)
             self.window.destroy()
             solution.create_w()
-            self.npA = np.array(self.A)
-            print(self.npA) #here is svd calculation
 
     def button(self):
         self.B.bind('<Button-1>', self.get_entries)
@@ -116,7 +113,89 @@ class Solution:
      def create_w(self):
         self.window = Tk()
         self.window.resizable(False,False)
-        self.window.geometry('600x600+400+100')
+        self.window.geometry('600x700+400+40')
+        self.L = Label(self.window, text = ' Singular value decomposition: A = B*D*C')
+        self.L.place(x = 200, y = 20)
+
+        svd = SVD(make_matrix.npA)
+        svd.adj()
+        svd.find_eigenvalues()
+        svd.str_charac_pol()
+        svd.D()
+        svd.C()
+        svd.B()
+        svd.mult()
+
+        
+        self.L1 = Label(self.window, text = svd.matrixD)
+        self.L1.place(x = 200, y = 50)
+        self.L11 = Label(self.window, text = "D =")
+        self.L11.place(x = 175, y = 60)
+
+        self.L2 = Label(self.window, text = svd.matrixC_t)
+        self.L2.place(x = 300, y = 50)
+        self.L22 = Label(self.window, text = "C =")
+        self.L22.place(x = 275, y = 60)
+
+        self.L3 = Label(self.window, text = svd.matrixB)
+        self.L3.place(x = 400, y = 50)
+        self.L33 = Label(self.window, text = "B =")
+        self.L33.place(x = 375, y = 60)
+
+        self.L4 = Label(self.window, text = "Steps", font = ('Cambria', 20, 'bold'))
+        self.L4.place(x = 280, y = 100)
+
+        self.L5 = Label(self.window, text = svd.matrixadjAA)
+        self.L5.place(x = 60, y = 150)
+        self.L55 = Label(self.window, text = "1) AdjointA(transposed) * A:")
+        self.L55.place(x = 60, y = 130)
+
+        self.L6 = Label(self.window, text = svd.char_pol_str + " = 0")
+        self.L6.place(x = 30, y = 230)
+        self.L66 = Label(self.window, text = "2) Find characterictic polinomyal (A - xI):")
+        self.L66.place(x = 60, y = 210)
+
+        self.L7 = Label(self.window, text = svd.matrixEVAL)
+        self.L7.place(x = 60, y = 290)
+        self.L77 = Label(self.window, text = "3) Find eigenvalues:")
+        self.L77.place(x = 60, y = 260)
+
+        self.L8 = Label(self.window, text = svd.matrixD)
+        self.L8.place(x = 60, y = 350)
+        self.L88 = Label(self.window, text = "4) Find matrix D, where are square roots (r) of eigenvalues on main diagonal:")
+        self.L88.place(x = 60, y = 320)
+
+        self.L9 = Label(self.window, text = svd.matrixC_t)
+        self.L9.place(x = 60, y = 430)
+        self.L99 = Label(self.window, text = "5) Find orthogona matrix C, which is transpose matrix of eigenvectors:")
+        self.L99.place(x = 60, y = 400)
+
+        self.L10 = Label(self.window, text = svd.matrixB)
+        self.L10.place(x = 60, y = 510)
+        self.L1010 = Label(self.window, text = "6) Find matrix B, where b = A*eigenvector/r:")
+        self.L1010.place(x = 60, y = 480)
+
+        self.L11 = Label(self.window, text = svd.matrixmult)
+        self.L11.place(x = 60, y = 600)
+        self.L1111 = Label(self.window, text = "7) Verify that decompisition is correct:")
+        self.L1111.place(x = 60, y = 570)
+
+        self.L12 = Label(self.window, text = svd.matrixB)
+        self.L12.place(x = 130, y = 600)
+        self.L1212 = Label(self.window, text = "=")
+        self.L1212.place(x = 110, y = 615)
+
+        self.L13 = Label(self.window, text = svd.matrixD)
+        self.L13.place(x = 200, y = 600)
+        self.L1313 = Label(self.window, text = "*")
+        self.L1313.place(x = 185, y = 620)
+
+        self.L13 = Label(self.window, text = svd.matrixC_t)
+        self.L13.place(x = 270, y = 600)
+        self.L1313 = Label(self.window, text = "*")
+        self.L1313.place(x = 255, y = 620)
+
+
         self.window.mainloop()
 
 class Error_mn:
@@ -190,7 +269,6 @@ The matrix has empty cells""")
 
 
     
-
 choose_size = Choose_size()
 make_matrix = Make_matrix()
 solution = Solution()
