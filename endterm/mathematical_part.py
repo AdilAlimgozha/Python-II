@@ -14,29 +14,43 @@ class Common:
 
     def det_f(self, M): #det func
         if len(M) == 2:
-            self.detM = M[1][1]*M[0][0] - M[1][0]*M[0][1]
+            self.detM = (M[1][1]*M[0][0] - M[1][0]*M[0][1]) % 5
         elif len(M) == 3:
             b = M[0][0] * (M[1][1] * M[2][2] - M[2][1] * M[1][2])
             c = M[1][0] * (M[0][1] * M[2][2] - M[2][1] * M[0][2])
             d = M[2][0] * (M[0][1] * M[1][2] - M[1][1] * M[0][2])
-            self.detM = b - c + d
+            self.detM = (b - c + d) % 5
         return self.detM
 
     def char_pol_f(self, M, x): #characteristic polinomyal func
         if len(M) == 2:
-            self.char_p = (M[0][0] - x) * (M[1][1] - x) - M[0][1] * M[1][0]
+            self.char_p = pow(x, 2)-self.trace(M)*x+self.det_f(M)
         elif len(M) == 3:
-            b = (M[0][0] - x) * ((M[1][1] - x) * (M[2][2] - x) - M[2][1] * M[1][2])
-            c = M[1][0] * (M[0][1] * (M[2][2] - x) - M[2][1] * M[0][2])
-            d = M[2][0] * (M[0][1] * M[1][2] - (M[1][1] - x) * M[0][2])
-            self.char_p = b - c + d
+            self.char_p = pow(x, 3)-self.trace(M)*pow(x, 2)+self.sum_of_minors_3(M)*x-self.det_f(M)
         return self.char_p
+    
+    def trace(self, M):
+        if len(M) == 2:
+            self.trac = (M[0][0] + M[1][1]) % 5
+        elif len(M) == 3:
+            self.trac = (M[0][0] + M[1][1] + M[2][2]) % 5
+        return self.trac
+
+    def sum_of_minors_3(self, M):
+        m1 = self.det_f(np.array([[M[0][0], M[0][1]],[M[1][0], M[1][1]]]))
+        m2 = self.det_f(np.array([[M[0][0], M[0][2]],[M[2][0], M[2][2]]]))
+        m3 = self.det_f(np.array([[M[1][1], M[1][2]],[M[2][1], M[2][2]]]))
+        self.sum_minors = (m1 + m2 + m3) % 5
+        return self.sum_minors
     
     def eigenvectors_3(self, M, x, y, z):
         return M[0][0] * x + M[0][1] * y + M[0][2] * z, M[1][0] * x + M[1][1] * y + M[1][2] * z, M[2][0] * x + M[2][1] * y + M[2][2] * z
 
     def eigenvectors_2(self, M, x, y):
         return M[0][0] * x + M[0][1] * y, M[1][0] * x + M[1][1] * y
+    
+    def existance_solution(self):
+        return False
 
 
 class SVD:
@@ -63,6 +77,8 @@ class SVD:
             for i in range(5):
                 if common.char_pol_f(self.adjAA, i) % 5 == 0:
                     self.eigenvalues.append(i)
+            if len(self.eigenvalues) == 0:
+                return common.existance_solution()
             if len(self.eigenvalues) == 1:
                 x1, x2, x3 = self.eigenvalues[0], self.eigenvalues[0], self.eigenvalues[0]
             elif len(self.eigenvalues) == 3:
@@ -78,11 +94,15 @@ class SVD:
             for i in range(5):
                 if common.char_pol_f(self.adjAA, i) == 0:
                     self.eigenvalues.append(i)
+            if len(self.eigenvalues) == 0:
+                    return common.existance_solution()
             if len(self.eigenvalues) == 1:
                 x1, x2 = self.eigenvalues[0], self.eigenvalues[0]
             elif len(self.eigenvalues) == 2:
                 x1, x2 = self.eigenvalues[0], self.eigenvalues[1]
             self.all_eigval = [x1, x2]
+        if 0 in self.all_eigval:
+            return common.existance_solution()
         self.matrixEVAL = ""
         for i in range(len(self.all_eigval)):
             self.matrixEVAL = self.matrixEVAL + str(int(self.all_eigval[i])) + '    '
@@ -103,18 +123,11 @@ class SVD:
             self.matrixD += "\n"
         return self.matrixD
 
-    def str_charac_pol(self):
-        for i in range(len(self.adjAA_list)):   #str characteristic polinomyal
-            for j in range(len(self.adjAA_list[i])):
-                if i == j:
-                    self.adjAA_list[i][j] = str(self.adjAA_list[i][j]) + "-x"
+    def str_charac_pol(self):   #str characteristic polinomyal
         if len(self.adjAA) == 3:
-            self.char_pol_str = "({e00})*({e11})*({e22})+({e10})*({e21})*({e02})+({e01})*({e12})*({e20})-({e11})*({e20})*({e02})-({e00})*({e12})*({e21})-({e01})*({e10})*({e22})".format(
-                e00 = self.adjAA_list[0][0], e11 = self.adjAA_list[1][1], e22 = self.adjAA_list[2][2], e10 = self.adjAA_list[1][0], e21 = self.adjAA_list[2][1],
-                e02 = self.adjAA_list[0][2], e01 = self.adjAA_list[0][1], e12 = self.adjAA_list[1][2], e20 = self.adjAA_list[2][0])
+            self.char_pol_str = "x^3 - {trace}x^2 + {mins}x - {det} = 0".format(trace = common.trace(self.adjAA), mins = common.sum_of_minors_3(self.adjAA), det = common.det_f(self.adjAA))
         elif len(self.adjAA) == 2:
-            self.char_pol_str = "({e00})*({e11}) - ({e01})*({e10}))".format(e00 = self.adjAA_list[0][0], e11 = self.adjAA_list[1][1],
-            e01 = self.adjAA_list[0][1], e10 = self.adjAA_list[1][0])
+            self.char_pol_str = "x^2 - {trace}x + {det} = 0".format(trace = common.trace(self.adjAA), det = common.det_f(self.adjAA))
         return self.char_pol_str
 
     def C(self):
@@ -131,7 +144,7 @@ class SVD:
                         for j in range(5):
                             for k in range(5):
                                 if common.eigenvectors_3(matrices_eigvec[m], i, j, k)[0] % 5 == 0 and common.eigenvectors_3(matrices_eigvec[m], i, j, k)[1] % 5 == 0 and common.eigenvectors_3(matrices_eigvec[m], i, j, k)[2] % 5 == 0:
-                                        vectors.append([i, j, k])
+                                    vectors.append([i, j, k])
                     eigenvec.append(vectors)
                 for i in range(len(eigenvec)):
                     if len(eigenvec[i]) > 1:
@@ -187,12 +200,13 @@ class SVD:
             self.B = self.B.transpose()
         if len(self.adjAA) == 2:
             self.B = []
-            b1 = np.dot(self.A, self.C[0]) / self.D[0][0]
-            b2 = np.dot(self.A, self.C[1]) / self.D[1][1]
+            b1 = np.dot(self.A, self.C_t[0]) / self.D[0][0]
+            b2 = np.dot(self.A, self.C_t[1]) / self.D[1][1]
             self.B.append(b1)
             self.B.append(b2)
             self.B = np.array(self.B)
             self.B = self.B.transpose()
+            common.Z5(self.B)
         self.matrixB = ''
         for i in range(len(self.B)):
             for j in range(len(self.B[i])):
@@ -209,14 +223,10 @@ class SVD:
             self.matrixmult += "\n"
         return self.matrixmult
 
-            
-"""[[1, 4, 0],
-                [1, 1, 2],
-                [1, 3, 1]]"""
-
 common = Common()
-"""svd = SVD([[1, 2, 4],
-                [1, 2, 4]])
+"""svd = SVD([[0, 2, 1],
+                [0, 0, 2],
+                [1, 0, 0]])
 print(svd.adj())
 print(svd.find_eigenvalues())
 print(svd.str_charac_pol())
