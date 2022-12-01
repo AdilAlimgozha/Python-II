@@ -1,6 +1,5 @@
 from tkinter import *
 from tkinter import ttk
-import tkinter as tk
 import numpy as np
 from mathematical_part import *
 
@@ -211,7 +210,6 @@ class Solution:
 
     def button(self):
         self.B.bind('<Button-1>', self.open_1_w)
-
 
 class Error_mn:
     def create_w(self):

@@ -1,6 +1,4 @@
 import numpy as np
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
 from math import sqrt   #from math module was used only "sqrt"
 
 
@@ -52,7 +50,6 @@ class Common:
     def existance_solution(self):
         return False
 
-
 class SVD:
     def __init__(self, A):
         self.A = A
@@ -62,7 +59,6 @@ class SVD:
         self.A_t = np.transpose(self.A)
         self.adjAA = np.dot(self.A_t, self.A)
         common.Z5(self.adjAA)
-        self.adjAA_list = self.adjAA.tolist()
 
         self.matrixadjAA = ''
         for i in range(len(self.adjAA)):
@@ -184,8 +180,6 @@ class SVD:
                 self.matrixC_t = self.matrixC_t + str(int(self.C_t[i][j])) + '    '
             self.matrixC_t += "\n"
         return self.matrixC_t
-
-
 
     def B(self):
         if len(self.adjAA) == 3:
