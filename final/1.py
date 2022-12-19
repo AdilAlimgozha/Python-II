@@ -19,13 +19,27 @@ class Common:
             for c in range(len(A)):
                 self.determ += ((-1)**c)*A[0][c] * self.determinant(self.Minor(A,0,c))
             return self.determ
+    
+    def ref(self, A):
+        r, c = A.shape
+        if r == 0 or c == 0:
+            return A
 
-    def char_pol_f(self, M, x): #characteristic polinomyal func
-        if len(M) == 2:
-            self.char_p = pow(x, 2)-self.trace(M)*x+self.det_f(M)
-        elif len(M) == 3:
-            self.char_p = pow(x, 3)-self.trace(M)*pow(x, 2)+self.sum_of_minors_3(M)*x-self.det_f(M)
-        return self.char_p
+        for i in range(len(A)):
+            if A[i,0] != 0:
+                break
+        else:
+            B = self.ref(A[:,1:])
+            return np.hstack([A[:,:1], B])
+
+        if i > 0:
+            ith_row = A[i].copy()
+            A[i] = A[0]
+            A[0] = ith_row
+        A[0] = A[0] / A[0,0]
+        A[1:] -= A[0] * A[1:,0:1]
+        B = self.ref(A[1:,1:])
+        return np.vstack([A[:1], np.hstack([A[1:,:1], B]) ])
 
 class SVD:
     def __init__(self, A):
@@ -35,6 +49,7 @@ class SVD:
         self.I = np.identity(len(self.A))
         self.A_t = np.transpose(self.A)
         self.adjAA = np.dot(self.A_t, self.A)
+        self.AadjA = np.dot(self.A, self.A_t)
         return self.adjAA
 
     def find_char_pol(self):
@@ -63,6 +78,8 @@ class SVD:
         for i in range(ctr):
             eig_list.append(0)
         self.eigvalues = np.asarray(eig_list)
+        self.eigvalues.sort()
+        self.eigenvalues_set = set(self.eigvalues)
         return self.eigvalues
 
         
@@ -77,7 +94,19 @@ class SVD:
 
 
     def C(self):
-        matrices_eigvec = []
+        matrices = []
+        print(self.eigenvalues_set)
+        for eival in self.eigenvalues_set:
+            adjAA_minus_eigval = self.adjAA - eival * np.identity(len(self.adjAA))
+            adjAA_minus_eigval_T = np.transpose(adjAA_minus_eigval)
+            adjAA_minus_eigval_T_I = np.concatenate((adjAA_minus_eigval_T, np.identity(len(adjAA_minus_eigval_T))), axis = 1)
+            adjAA_minus_eigval_T_I_ref = common.ref(adjAA_minus_eigval_T_I)
+            #print(adjAA_minus_eigval_T_I_ref)
+            adjAA_minus_eigval_Tref_Iref = np.split(adjAA_minus_eigval_T_I_ref, 2, axis = 1)
+            print(adjAA_minus_eigval, eival)
+        
+
+
         
 
     def B(self):
@@ -116,13 +145,13 @@ class SVD:
         return self.matrixmult
 
 common = Common()
-svd = SVD([[1,2,3,0,3],[4,8,1,2,3],[0,7,5,2,6],[1,2,5,7,9]])
+svd = SVD([[1,2,3],[4,8,1],[0,7,5]])
 print(svd.adj())
 print(svd.find_char_pol())
 print(svd.coefficients())
 print(svd.D())
-"""print(svd.C())
-print(svd.B())
+svd.C()
+"""print(svd.B())
 print(svd.mult())"""
 #A = [[1,2,3,0,3],[4,8,1,2,3],[0,7,5,2,6],[1,2,5,7,9],[1,0,0,3,4]]
 #print(common.determinant(A))
