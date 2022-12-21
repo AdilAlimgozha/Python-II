@@ -40,6 +40,31 @@ class Common:
         A[1:] -= A[0] * A[1:,0:1]
         B = self.ref(A[1:,1:])
         return np.vstack([A[:1], np.hstack([A[1:,:1], B]) ])
+    
+    def ctr_dig(self, n):
+        s = str(n)
+        x = re.findall('\.\d*', s)
+        return len(x[0]) - 1
+
+    def proj_v(self, v, w):
+        v = np.array(v)
+        w = np.array(w)
+        proj = ((np.dot(v, w))/(np.dot(w, w))) * w
+        return proj
+
+    def orthogonalization(self, s_v):
+        orthogonal_vectors = []
+        for i in range(len(s_v)):
+            if i == 0:
+                orthogonal_vectors.append(s_v[0])
+            else:
+                w = s_v[i] - common.proj_v(s_v[i], orthogonal_vectors[i - 1])
+                j = 2
+                while len(s_v) - 1 != i:
+                    w = w - common.proj_v(s_v[i], orthogonal_vectors[i - j])
+                    j += 1
+                orthogonal_vectors.append(w)
+
 
 class SVD:
     def __init__(self, A):
@@ -79,10 +104,8 @@ class SVD:
             eig_list.append(0)
         self.eigvalues = np.asarray(eig_list)
         self.eigvalues.sort()
-        self.eigenvalues_set = set(self.eigvalues)
         return self.eigvalues
-
-        
+     
     def D(self):
         self.D = np.zeros((len(self.adjAA), len(self.adjAA)))
         for i in range(len(self.eigvalues)):
@@ -93,18 +116,29 @@ class SVD:
 
 
 
+
     def C(self):
         matrices = []
-        print(self.eigenvalues_set)
-        for eival in self.eigenvalues_set:
-            adjAA_minus_eigval = self.adjAA - eival * np.identity(len(self.adjAA))
+        print('eigenvalues', self.eigvalues)
+        for i in range(len(self.eigvalues)):
+            print(round(self.eigvalues[i], common.ctr_dig(self.eigvalues[i])))
+            adjAA_minus_eigval = self.adjAA - common.ctr_dig(self.eigvalues[i]) * np.identity(len(self.adjAA))
             adjAA_minus_eigval_T = np.transpose(adjAA_minus_eigval)
             adjAA_minus_eigval_T_I = np.concatenate((adjAA_minus_eigval_T, np.identity(len(adjAA_minus_eigval_T))), axis = 1)
             adjAA_minus_eigval_T_I_ref = common.ref(adjAA_minus_eigval_T_I)
-            #print(adjAA_minus_eigval_T_I_ref)
             adjAA_minus_eigval_Tref_Iref = np.split(adjAA_minus_eigval_T_I_ref, 2, axis = 1)
-            print(adjAA_minus_eigval, eival)
+            print(adjAA_minus_eigval_Tref_Iref[0])
         
+    def gramm_schmidt(self, s_v):
+        orthogonal_vectors = []
+        for i in range(len(s_v)):
+            if i == 0:
+                orthogonal_vectors.append(s_v[0])
+            else:
+                w = s_v[i] - common.proj_v(s_v[i], orthogonal_vectors[i - 1])
+                orthogonal_vectors.append(w)
+
+
 
 
         
@@ -145,7 +179,8 @@ class SVD:
         return self.matrixmult
 
 common = Common()
-svd = SVD([[1,2,3],[4,8,1],[0,7,5]])
+#svd = SVD([[1,-2,3],[4,5,3],[1,2,6]])
+svd = SVD([[0,-2,0],[0,0,3],[1,0,0]])
 print(svd.adj())
 print(svd.find_char_pol())
 print(svd.coefficients())
@@ -155,3 +190,4 @@ svd.C()
 print(svd.mult())"""
 #A = [[1,2,3,0,3],[4,8,1,2,3],[0,7,5,2,6],[1,2,5,7,9],[1,0,0,3,4]]
 #print(common.determinant(A))
+#svd = SVD([[0,-2,0],[0,0,3],[1,0,0]])

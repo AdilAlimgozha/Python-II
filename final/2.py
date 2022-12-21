@@ -1,7 +1,23 @@
 import numpy as np 
-a = np.array([[1, 2, 4], [3, 4, 5], [5, 6 ,7]])
-b = np.identity(len(a))
 
-q = np.concatenate((a, b), axis=1)
-print(q)
-print(np.split(q ,2, axis = 1))
+def proj_v(v, w):
+    v = np.array(v)
+    w = np.array(w)
+    proj = ((np.dot(v, w))/(np.dot(w, w))) * w
+    return proj
+
+def orthogonalization(s_v):
+    orthogonal_vectors = []
+    for i in range(len(s_v)):
+        if i == 0:
+            orthogonal_vectors.append(s_v[0])
+        else:
+            w = s_v[i] - proj_v(s_v[i], orthogonal_vectors[i - 1])
+            j = 2
+            while j != i:
+                w = w - proj_v(s_v[i], orthogonal_vectors[i - j])
+                j += 1
+            orthogonal_vectors.append(w)
+    return orthogonal_vectors
+
+print(orthogonalization([[1, 2, 4], [2, 3, 5], [4, 2, 6]]))
