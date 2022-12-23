@@ -4,6 +4,7 @@ from sympy import *
 from math import *
 import re
 
+
 class Common:
     def Minor(self, A, i, j):
         return [row[:j] + row[j+1:] for row in (A[:i]+A[i+1:])]
@@ -135,17 +136,36 @@ class SVD:
 
 
     def C(self):
-        matrices = []
+        matrices_I_ref = []
+        eigvec_not_orth = []
         print('eigenvalues', self.eigvalues)
         for i in range(len(self.eigvalues)):
-            print(round(self.eigvalues[i], common.ctr_dig(self.eigvalues[i])))
-            adjAA_minus_eigval = self.adjAA - common.ctr_dig(self.eigvalues[i]) * np.identity(len(self.adjAA))
+            self.eigvalues[i] = self.eigvalues[i] * 10000000 - self.eigvalues[i]*9999999
+            print(self.eigvalues[i])
+            adjAA_minus_eigval = self.adjAA - self.eigvalues[i] * np.identity(len(self.adjAA))
             adjAA_minus_eigval_T = np.transpose(adjAA_minus_eigval)
             adjAA_minus_eigval_T_I = np.concatenate((adjAA_minus_eigval_T, np.identity(len(adjAA_minus_eigval_T))), axis = 1)
             adjAA_minus_eigval_T_I_ref = common.ref(adjAA_minus_eigval_T_I)
             adjAA_minus_eigval_Tref_Iref = np.split(adjAA_minus_eigval_T_I_ref, 2, axis = 1)
+            matrices_I_ref.append(adjAA_minus_eigval_Tref_Iref[1])
             print(adjAA_minus_eigval_Tref_Iref[0])
         
+        for matrix in matrices_I_ref:
+            v = matrix[(len(matrix) - 1)]
+            if (v not in eigvec_not_orth).any():
+                eigvec_not_orth.append(v)
+            else:
+                j = 2
+                while v in eigvec_not_orth:
+                    v = matrix[(len(matrix) - j)]
+                    j += 1
+                eigvec_not_orth.append(v)
+        print(eigvec_not_orth)
+            
+
+
+        
+
 
 
 
@@ -187,8 +207,8 @@ class SVD:
         return self.matrixmult
 
 common = Common()
-#svd = SVD([[1,-2,3],[4,5,3],[1,2,6]])
-svd = SVD([[0,-2,0],[0,0,3],[1,0,0]])
+svd = SVD([[1,-2,3],[4,5,3],[1,2,6]])
+#svd = SVD([[0,-2,0],[0,0,3],[1,0,0]])
 print(svd.adj())
 print(svd.find_char_pol())
 print(svd.coefficients())
