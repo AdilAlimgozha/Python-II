@@ -1,6 +1,7 @@
 import numpy as np
 from math import sqrt
 from sympy import *
+from math import *
 import re
 
 class Common:
@@ -57,13 +58,29 @@ class Common:
         for i in range(len(s_v)):
             if i == 0:
                 orthogonal_vectors.append(s_v[0])
-            else:
-                w = s_v[i] - common.proj_v(s_v[i], orthogonal_vectors[i - 1])
+            elif i == 1:
+                w = s_v[i] - self.proj_v(s_v[i], orthogonal_vectors[i - 1])
+                orthogonal_vectors.append(w)
+            if i >= 2:
                 j = 2
-                while len(s_v) - 1 != i:
-                    w = w - common.proj_v(s_v[i], orthogonal_vectors[i - j])
+                w = s_v[i] - self.proj_v(s_v[i], orthogonal_vectors[i - 1])
+                while j != i+1:
+                    w = w - self.proj_v(s_v[i], orthogonal_vectors[i - j])
                     j += 1
                 orthogonal_vectors.append(w)
+
+        summ_sq = []
+        for v in orthogonal_vectors:
+            summa = 0
+            for el in v:
+                summa += pow(el, 2)
+            summ_sq.append(sqrt(summa))
+        
+        for i in range(len(orthogonal_vectors)):
+            orthogonal_vectors[i] = (1/summ_sq[i]) * np.array(orthogonal_vectors[i])
+
+        return orthogonal_vectors
+
 
 
 class SVD:
@@ -129,15 +146,6 @@ class SVD:
             adjAA_minus_eigval_Tref_Iref = np.split(adjAA_minus_eigval_T_I_ref, 2, axis = 1)
             print(adjAA_minus_eigval_Tref_Iref[0])
         
-    def gramm_schmidt(self, s_v):
-        orthogonal_vectors = []
-        for i in range(len(s_v)):
-            if i == 0:
-                orthogonal_vectors.append(s_v[0])
-            else:
-                w = s_v[i] - common.proj_v(s_v[i], orthogonal_vectors[i - 1])
-                orthogonal_vectors.append(w)
-
 
 
 
@@ -186,6 +194,7 @@ print(svd.find_char_pol())
 print(svd.coefficients())
 print(svd.D())
 svd.C()
+print(common.orthogonalization([[1, 2, 4], [2, 3, 5], [4, 2, 6]]))
 """print(svd.B())
 print(svd.mult())"""
 #A = [[1,2,3,0,3],[4,8,1,2,3],[0,7,5,2,6],[1,2,5,7,9],[1,0,0,3,4]]
