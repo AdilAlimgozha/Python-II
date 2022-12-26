@@ -35,4 +35,4 @@ def orthogonalization(s_v):
 
     return orthogonal_vectors
 
-print(orthogonalization([[1, 2, 4], [2, 3, 5], [4, 2, 6]]))
+print(orthogonalization([[2.2,2,4],[0,2,1.124214],[ 8.01019759e+07,  8.35798930e+07,  9.35758932e+07]]))

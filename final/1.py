@@ -6,6 +6,7 @@ import re
 
 
 class Common:
+
     def Minor(self, A, i, j):
         return [row[:j] + row[j+1:] for row in (A[:i]+A[i+1:])]
 
@@ -137,86 +138,53 @@ class SVD:
 
     def C(self):
         matrices_I_ref = []
-        eigvec_not_orth = []
-        print('eigenvalues', self.eigvalues)
+        eigv_not_orth_str = []
+        eigvec = []
         for i in range(len(self.eigvalues)):
             self.eigvalues[i] = self.eigvalues[i] * 10000000 - self.eigvalues[i]*9999999
-            print(self.eigvalues[i])
             adjAA_minus_eigval = self.adjAA - self.eigvalues[i] * np.identity(len(self.adjAA))
             adjAA_minus_eigval_T = np.transpose(adjAA_minus_eigval)
             adjAA_minus_eigval_T_I = np.concatenate((adjAA_minus_eigval_T, np.identity(len(adjAA_minus_eigval_T))), axis = 1)
             adjAA_minus_eigval_T_I_ref = common.ref(adjAA_minus_eigval_T_I)
             adjAA_minus_eigval_Tref_Iref = np.split(adjAA_minus_eigval_T_I_ref, 2, axis = 1)
             matrices_I_ref.append(adjAA_minus_eigval_Tref_Iref[1])
-            print(adjAA_minus_eigval_Tref_Iref[0])
         
         for matrix in matrices_I_ref:
-            v = matrix[(len(matrix) - 1)]
-            if (v not in eigvec_not_orth).any():
-                eigvec_not_orth.append(v)
+            v = str(matrix[(len(matrix) - 1)])
+            if (v not in eigv_not_orth_str):
+                eigv_not_orth_str.append(v)
             else:
                 j = 2
-                while v in eigvec_not_orth:
-                    v = matrix[(len(matrix) - j)]
+                while v in eigv_not_orth_str:
+                    v = str(matrix[(len(matrix) - j)])
                     j += 1
-                eigvec_not_orth.append(v)
-        print(eigvec_not_orth)
-            
+                eigv_not_orth_str.append(v)
+        for string in eigv_not_orth_str:
+            s = re.split('\[|\]| ', string)
+            s1 = []
+            for i in range(len(s)):
+                if s[i] != "":
+                    s[i] = float(s[i])
+                    s1.append(s[i])
+            eigvec.append(s1)
+        eigvec = common.orthogonalization(eigvec)
+        eigvec = np.array(eigvec)
+        eigvec = eigvec.transpose()
+        return eigvec
 
 
-        
-
-
-
-
-        
 
     def B(self):
-        if len(self.adjAA) == 3:
-            self.B = []
-            b1 = np.dot(self.A, self.C_t[0]) / self.D[0][0]
-            b2 = np.dot(self.A, self.C_t[1]) / self.D[1][1]
-            b3 = np.dot(self.A, self.C_t[2]) / self.D[2][2]
-            self.B.append(b1)
-            self.B.append(b2)
-            self.B.append(b3)
-            self.B = np.array(self.B)
-            self.B = self.B.transpose()
-        if len(self.adjAA) == 2:
-            self.B = []
-            b1 = np.dot(self.A, self.C_t[0]) / self.D[0][0]
-            b2 = np.dot(self.A, self.C_t[1]) / self.D[1][1]
-            self.B.append(b1)
-            self.B.append(b2)
-            self.B = np.array(self.B)
-            self.B = self.B.transpose()
-        self.matrixB = ''
-        for i in range(len(self.B)):
-            for j in range(len(self.B[i])):
-                self.matrixB = self.matrixB + str(int(self.B[i][j])) + '    '
-            self.matrixB += "\n"
-        return self.matrixB
-    
-    def mult(self):
-        self.mul = np.dot(np.dot(self.B, self.D), self.C_t)
-        self.matrixmult = ''
-        for i in range(len(self.mul)):
-            for j in range(len(self.mul[i])):
-                self.matrixmult = self.matrixmult + str(int(self.mul[i][j])) + '    '
-            self.matrixmult += "\n"
-        return self.matrixmult
+        
+
+
 
 common = Common()
-svd = SVD([[1,-2,3],[4,5,3],[1,2,6]])
-#svd = SVD([[0,-2,0],[0,0,3],[1,0,0]])
+svd = SVD([[0,-2,0,2],[0,0,3,3],[1,0,0,5]])
 print(svd.adj())
 print(svd.find_char_pol())
 print(svd.coefficients())
 print(svd.D())
-svd.C()
-print(common.orthogonalization([[1, 2, 4], [2, 3, 5], [4, 2, 6]]))
+print(svd.C())
 """print(svd.B())
 print(svd.mult())"""
-#A = [[1,2,3,0,3],[4,8,1,2,3],[0,7,5,2,6],[1,2,5,7,9],[1,0,0,3,4]]
-#print(common.determinant(A))
-#svd = SVD([[0,-2,0],[0,0,3],[1,0,0]])
