@@ -86,8 +86,9 @@ class Common:
 
 
 class SVD:
-    def __init__(self, A):
+    def svd(self, A):
         self.A = np.array(A)
+        return self.A
 
     def adj(self):
         self.I = np.identity(len(self.A))
@@ -126,12 +127,12 @@ class SVD:
         return self.eigvalues
      
     def D(self):
-        self.D = np.zeros((len(self.adjAA), len(self.adjAA)))
+        self.D_ = np.zeros((len(self.adjAA), len(self.adjAA)))
         for i in range(len(self.eigvalues)):
             for j in range(len(self.eigvalues)):
                 if i == j:
-                    self.D[i][j] = sqrt(self.eigvalues[i])
-        return self.D
+                    self.D_[i][j] = sqrt(self.eigvalues[i])
+        return self.D_
 
 
 
@@ -139,7 +140,7 @@ class SVD:
     def C(self):
         matrices_I_ref = []
         eigv_not_orth_str = []
-        eigvec = []
+        self.eigvec = []
         for i in range(len(self.eigvalues)):
             self.eigvalues[i] = self.eigvalues[i] * 10000000 - self.eigvalues[i]*9999999
             adjAA_minus_eigval = self.adjAA - self.eigvalues[i] * np.identity(len(self.adjAA))
@@ -166,25 +167,44 @@ class SVD:
                 if s[i] != "":
                     s[i] = float(s[i])
                     s1.append(s[i])
-            eigvec.append(s1)
-        eigvec = common.orthogonalization(eigvec)
-        eigvec = np.array(eigvec)
-        eigvec = eigvec.transpose()
-        return eigvec
+            self.eigvec.append(s1)
+        print(self.eigvec)
+        self.eigvec = common.orthogonalization(self.eigvec)
+        self.eigvec = np.array(self.eigvec)
+        return self.eigvec
 
 
 
     def B(self):
-        
+        self.B_ = []
+        eigvec_t = self.eigvec
+        for i in range(len(eigvec_t)):
+            print('vec', eigvec_t[i], 'val', self.eigvalues[i])
+            b = np.dot(self.A, eigvec_t[i]) / sqrt(self.eigvalues[i])
+            self.B_.append(b)
+        self.B_ = np.array(self.B_)
+        self.B_ = np.transpose(self.B_)
+        return self.B_
 
+    def output(self):
+        print('B', self.B_)
+        print()
+        print('D', self.D_)
+        print()
+        print('C', self.eigvec)
+        print()
+        print('mult', np.dot(np.dot(self.B_, self.D_), self.eigvec))
 
 
 common = Common()
-svd = SVD([[0,-2,0,2],[0,0,3,3],[1,0,0,5]])
+svd = SVD()
+svd.svd([[1,-2,0, 2],
+        [0,1,3, 1],
+        [1,0,2, 1]])
 print(svd.adj())
 print(svd.find_char_pol())
 print(svd.coefficients())
-print(svd.D())
-print(svd.C())
-"""print(svd.B())
-print(svd.mult())"""
+svd.D()
+svd.C()
+svd.B()
+svd.output()
