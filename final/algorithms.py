@@ -43,6 +43,11 @@ class Common:
         A[1:] -= A[0] * A[1:,0:1]
         B = self.ref(A[1:,1:])
         return np.vstack([A[:1], np.hstack([A[1:,:1], B]) ])
+    
+    def ctr_dig(self, n):
+        s = str(n)
+        x = re.findall('\.\d*', s)
+        return len(x[0]) - 1
 
     def proj_v(self, v, w):
         v = np.array(v)
@@ -80,13 +85,20 @@ class Common:
 
 
 
-class Square_root:
-    def square_root(self, A):
+class SVD:
+    def svd(self, A):
         self.A = np.array(A)
         return self.A
 
+    def adj(self):
+        self.I = np.identity(len(self.A))
+        self.A_t = np.transpose(self.A)
+        self.adjAA = np.dot(self.A_t, self.A)
+        self.AadjA = np.dot(self.A, self.A_t)
+        return self.adjAA
+
     def find_char_pol(self):
-        M = Matrix(self.A.tolist()) 
+        M = Matrix(self.adjAA.tolist()) 
         lamda = symbols('x') 
         self.poly = str(M.charpoly(lamda))
         return self.poly
@@ -94,31 +106,36 @@ class Square_root:
     def coefficients(self):
         coeffs = []
         x = re.sub("\*\*\d", "", self.poly)
-        y = re.sub("(\(x)|([+] x)|(- x)", "1*x", x)
-        y = re.sub("[a-z]||[A-Z]||\'||\=||\,||\(||\)|| ", "", y)
+        y = re.sub("[a-z]||[A-Z]||\'||\=||\,||\(||\)|| ", "", x)
         z = re.split("\*", y)
         print(z)
         ctr = 0
+        coeffs.append(1)
         for coef in z:
             if coef != "":
                 coeffs.append(int(coef))
             else:
                 ctr += 1
+        print(coeffs)
         eigval = np.roots(coeffs)
+        print(eigval)
         eig_list = eigval.tolist()
         for i in range(ctr):
             eig_list.append(0)
         self.eigvalues = np.asarray(eig_list)
         self.eigvalues.sort()
         return self.eigvalues
-
+     
     def D(self):
-        self.D_ = np.zeros((len(self.A), len(self.A)))
+        self.D_ = np.zeros((len(self.adjAA), len(self.adjAA)))
         for i in range(len(self.eigvalues)):
             for j in range(len(self.eigvalues)):
                 if i == j:
                     self.D_[i][j] = sqrt(self.eigvalues[i])
         return self.D_
+
+
+
 
     def C(self):
         matrices_I_ref = []
@@ -126,7 +143,7 @@ class Square_root:
         self.eigvec = []
         for i in range(len(self.eigvalues)):
             self.eigvalues[i] = self.eigvalues[i] * 10000000 - self.eigvalues[i]*9999999
-            adjAA_minus_eigval = self.A - self.eigvalues[i] * np.identity(len(self.A))
+            adjAA_minus_eigval = self.adjAA - self.eigvalues[i] * np.identity(len(self.adjAA))
             adjAA_minus_eigval_T = np.transpose(adjAA_minus_eigval)
             adjAA_minus_eigval_T_I = np.concatenate((adjAA_minus_eigval_T, np.identity(len(adjAA_minus_eigval_T))), axis = 1)
             adjAA_minus_eigval_T_I_ref = common.ref(adjAA_minus_eigval_T_I)
@@ -151,17 +168,46 @@ class Square_root:
                     s[i] = float(s[i])
                     s1.append(s[i])
             self.eigvec.append(s1)
+        print(self.eigvec)
         self.eigvec = common.orthogonalization(self.eigvec)
         self.eigvec = np.array(self.eigvec)
         return self.eigvec
 
 
-common = Common()
-square_root = Square_root()
-square_root.square_root([[2,0,2],[0,-2,0],[2, 0, -1]])
 
-print(square_root.find_char_pol())
-print("eigval", square_root.coefficients())
-print()
-print("eigval sqrt root", square_root.D())
-print("eigvec in horizontal form", square_root.C())
+    def B(self):
+        self.B_ = []
+        eigvec_t = self.eigvec
+        for i in range(len(eigvec_t)):
+            print('vec', eigvec_t[i], 'val', self.eigvalues[i])
+            if self.eigvalues[i] != 0:
+                b = np.dot(self.A, eigvec_t[i]) / sqrt(self.eigvalues[i])
+            else:
+                b = np.zeros(len(self.A))
+            self.B_.append(b)
+        self.B_ = np.array(self.B_)
+        self.B_ = np.transpose(self.B_)
+        return self.B_
+
+    def output(self):
+        print('B', self.B_)
+        print()
+        print('D', self.D_)
+        print()
+        print('C', self.eigvec)
+        print()
+        print('mult', np.dot(np.dot(self.B_, self.D_), self.eigvec))
+
+
+common = Common()
+svd = SVD()
+svd.svd([[1,-2,0, 2],
+        [0,1,3, 1],
+        [1,0,2, 1]])
+print(svd.adj())
+print(svd.find_char_pol())
+print(svd.coefficients())
+svd.D()
+svd.C()
+svd.B()
+svd.output()

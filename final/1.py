@@ -106,11 +106,11 @@ class SVD:
     def coefficients(self):
         coeffs = []
         x = re.sub("\*\*\d", "", self.poly)
-        y = re.sub("[a-z]||[A-Z]||\'||\=||\,||\(||\)|| ", "", x)
+        y = re.sub("(\(x)|([+] x)|(- x)", "1*x", x)
+        y = re.sub("[a-z]||[A-Z]||\'||\=||\,||\(||\)|| ", "", y)
         z = re.split("\*", y)
         print(z)
         ctr = 0
-        coeffs.append(1)
         for coef in z:
             if coef != "":
                 coeffs.append(int(coef))
