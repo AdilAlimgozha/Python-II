@@ -180,7 +180,10 @@ class SVD:
         eigvec_t = self.eigvec
         for i in range(len(eigvec_t)):
             print('vec', eigvec_t[i], 'val', self.eigvalues[i])
-            b = np.dot(self.A, eigvec_t[i]) / sqrt(self.eigvalues[i])
+            if self.eigvalues[i] != 0:
+                b = np.dot(self.A, eigvec_t[i]) / sqrt(self.eigvalues[i])
+            else:
+                b = np.zeros(len(self.A))
             self.B_.append(b)
         self.B_ = np.array(self.B_)
         self.B_ = np.transpose(self.B_)
