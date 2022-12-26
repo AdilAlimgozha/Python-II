@@ -158,7 +158,7 @@ class Square_root:
 
 common = Common()
 square_root = Square_root()
-square_root.square_root([[2,0,2],[0,-2,0],[2, 0, -1]])
+square_root.square_root([[1, 2, 1],[2, 7, 0],[2, 0, 2]])
 
 print(square_root.find_char_pol())
 print("eigval", square_root.coefficients())

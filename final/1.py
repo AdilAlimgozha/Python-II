@@ -106,19 +106,17 @@ class SVD:
     def coefficients(self):
         coeffs = []
         x = re.sub("\*\*\d", "", self.poly)
-        y = re.sub("(\(x)|([+] x)|(- x)", "1*x", x)
+        y = re.sub("(\(x)|([+] x)|(- x)", "1*x", x) ##########
         y = re.sub("[a-z]||[A-Z]||\'||\=||\,||\(||\)|| ", "", y)
         z = re.split("\*", y)
-        print(z)
         ctr = 0
+        ########
         for coef in z:
             if coef != "":
                 coeffs.append(int(coef))
             else:
                 ctr += 1
-        print(coeffs)
         eigval = np.roots(coeffs)
-        print(eigval)
         eig_list = eigval.tolist()
         for i in range(ctr):
             eig_list.append(0)
@@ -168,7 +166,6 @@ class SVD:
                     s[i] = float(s[i])
                     s1.append(s[i])
             self.eigvec.append(s1)
-        print(self.eigvec)
         self.eigvec = common.orthogonalization(self.eigvec)
         self.eigvec = np.array(self.eigvec)
         return self.eigvec
@@ -179,7 +176,6 @@ class SVD:
         self.B_ = []
         eigvec_t = self.eigvec
         for i in range(len(eigvec_t)):
-            print('vec', eigvec_t[i], 'val', self.eigvalues[i])
             if self.eigvalues[i] != 0:
                 b = np.dot(self.A, eigvec_t[i]) / sqrt(self.eigvalues[i])
             else:
@@ -199,15 +195,310 @@ class SVD:
         print('mult', np.dot(np.dot(self.B_, self.D_), self.eigvec))
 
 
+class Square_root:
+    def square_root(self, A):
+        self.A = np.array(A)
+        return self.A
+
+    def find_char_pol(self):
+        M = Matrix(self.A.tolist()) 
+        lamda = symbols('x') 
+        self.poly = str(M.charpoly(lamda))
+        return self.poly
+    
+    def coefficients(self):
+        coeffs = []
+        x = re.sub("\*\*\d", "", self.poly)
+        y = re.sub("[a-z]||[A-Z]||\'||\=||\,||\(||\)|| ", "", x)
+        z = re.split("\*", y)
+        ctr = 0
+        coeffs.append(1)
+        for coef in z:
+            if coef != "":
+                coeffs.append(int(coef))
+            else:
+                ctr += 1
+        eigval = np.roots(coeffs)
+        eig_list = eigval.tolist()
+        for i in range(ctr):
+            eig_list.append(0)
+        self.eigvalues = np.asarray(eig_list)
+        self.eigvalues.sort()
+        return self.eigvalues
+
+    def D(self):
+        self.D_ = np.zeros((len(self.A), len(self.A)))
+        for i in range(len(self.eigvalues)):
+            for j in range(len(self.eigvalues)):
+                if i == j:
+                    self.D_[i][j] = sqrt(self.eigvalues[i])
+        return self.D_
+
+    def C(self):
+        matrices_I_ref = []
+        eigv_not_orth_str = []
+        self.eigvec = []
+        for i in range(len(self.eigvalues)):
+            self.eigvalues[i] = self.eigvalues[i] * 10000000 - self.eigvalues[i]*9999999
+            adjAA_minus_eigval = self.A - self.eigvalues[i] * np.identity(len(self.A))
+            adjAA_minus_eigval_T = np.transpose(adjAA_minus_eigval)
+            adjAA_minus_eigval_T_I = np.concatenate((adjAA_minus_eigval_T, np.identity(len(adjAA_minus_eigval_T))), axis = 1)
+            adjAA_minus_eigval_T_I_ref = common.ref(adjAA_minus_eigval_T_I)
+            adjAA_minus_eigval_Tref_Iref = np.split(adjAA_minus_eigval_T_I_ref, 2, axis = 1)
+            matrices_I_ref.append(adjAA_minus_eigval_Tref_Iref[1])
+        
+        for matrix in matrices_I_ref:
+            v = str(matrix[(len(matrix) - 1)])
+            if (v not in eigv_not_orth_str):
+                eigv_not_orth_str.append(v)
+            else:
+                j = 2
+                while v in eigv_not_orth_str:
+                    v = str(matrix[(len(matrix) - j)])
+                    j += 1
+                eigv_not_orth_str.append(v)
+        for string in eigv_not_orth_str:
+            s = re.split('\[|\]| ', string)
+            s1 = []
+            for i in range(len(s)):
+                if s[i] != "":
+                    s[i] = float(s[i])
+                    s1.append(s[i])
+            self.eigvec.append(s1)
+        self.eigvec = common.orthogonalization(self.eigvec)
+        self.eigvec = np.array(self.eigvec)
+        return self.eigvec
+
+    def final(self):
+        DC = np.dot(np.linalg.inv(self.eigvec),self.D_)
+        final = np.dot(DC,self.eigvec)
+        return final
+
+class PD:
+    def pd(self, A):
+        self.A = np.array(A)
+        return self.A
+
+    def adj(self):
+        self.I = np.identity(len(self.A))
+        self.A_t = np.transpose(self.A)
+        self.adjAA = np.dot(self.A_t, self.A)
+        self.AadjA = np.dot(self.A, self.A_t)
+        return self.adjAA
+
+    def find_char_pol(self):
+        M = Matrix(self.adjAA.tolist()) 
+        lamda = symbols('x') 
+        self.poly = str(M.charpoly(lamda))
+        return self.poly
+    
+    def coefficients(self):
+        coeffs = []
+        x = re.sub("\*\*\d", "", self.poly)
+        y = re.sub("(\(x)|([+] x)|(- x)", "1*x", x) ##########
+        y = re.sub("[a-z]||[A-Z]||\'||\=||\,||\(||\)|| ", "", y)
+        z = re.split("\*", y)
+        ctr = 0
+        ########
+        for coef in z:
+            if coef != "":
+                coeffs.append(int(coef))
+            else:
+                ctr += 1
+        eigval = np.roots(coeffs)
+        eig_list = eigval.tolist()
+        for i in range(ctr):
+            eig_list.append(0)
+        self.eigvalues = np.asarray(eig_list)
+        self.eigvalues.sort()
+        return self.eigvalues
+     
+    def D(self):
+        self.D_ = np.zeros((len(self.adjAA), len(self.adjAA)))
+        for i in range(len(self.eigvalues)):
+            for j in range(len(self.eigvalues)):
+                if i == j:
+                    self.D_[i][j] = sqrt(self.eigvalues[i])
+        return self.D_
+
+    def C(self):
+        matrices_I_ref = []
+        eigv_not_orth_str = []
+        self.eigvec = []
+        for i in range(len(self.eigvalues)):
+            self.eigvalues[i] = self.eigvalues[i] * 10000000 - self.eigvalues[i]*9999999
+            adjAA_minus_eigval = self.adjAA - self.eigvalues[i] * np.identity(len(self.adjAA))
+            adjAA_minus_eigval_T = np.transpose(adjAA_minus_eigval)
+            adjAA_minus_eigval_T_I = np.concatenate((adjAA_minus_eigval_T, np.identity(len(adjAA_minus_eigval_T))), axis = 1)
+            adjAA_minus_eigval_T_I_ref = common.ref(adjAA_minus_eigval_T_I)
+            adjAA_minus_eigval_Tref_Iref = np.split(adjAA_minus_eigval_T_I_ref, 2, axis = 1)
+            matrices_I_ref.append(adjAA_minus_eigval_Tref_Iref[1])
+        
+        for matrix in matrices_I_ref:
+            v = str(matrix[(len(matrix) - 1)])
+            if (v not in eigv_not_orth_str):
+                eigv_not_orth_str.append(v)
+            else:
+                j = 2
+                while v in eigv_not_orth_str:
+                    v = str(matrix[(len(matrix) - j)])
+                    j += 1
+                eigv_not_orth_str.append(v)
+        for string in eigv_not_orth_str:
+            s = re.split('\[|\]| ', string)
+            s1 = []
+            for i in range(len(s)):
+                if s[i] != "":
+                    s[i] = float(s[i])
+                    s1.append(s[i])
+            self.eigvec.append(s1)
+        self.eigvec = common.orthogonalization(self.eigvec)
+        self.eigvec = np.array(self.eigvec)
+        return self.eigvec
+
+    def B(self):
+        self.B_ = []
+        eigvec_t = self.eigvec
+        for i in range(len(eigvec_t)):
+            if self.eigvalues[i] != 0:
+                b = np.dot(self.A, eigvec_t[i]) / sqrt(self.eigvalues[i])
+            else:
+                b = np.zeros(len(self.A))
+            self.B_.append(b)
+        self.B_ = np.array(self.B_)
+        self.B_ = np.transpose(self.B_)
+        return self.B_
+
+
+    def find_char_pol_1(self):
+        M = Matrix(self.AadjA.tolist()) 
+        lamda = symbols('x') 
+        self.poly_1 = str(M.charpoly(lamda))
+        return self.poly_1
+    
+    def coefficients_1(self):
+        coeffs = []
+        x = re.sub("\*\*\d", "", self.poly_1)
+        y = re.sub("(\(x)|([+] x)|(- x)", "1*x", x) ##########
+        y = re.sub("[a-z]||[A-Z]||\'||\=||\,||\(||\)|| ", "", y)
+        z = re.split("\*", y)
+        ctr = 0
+        ########
+        for coef in z:
+            if coef != "":
+                coeffs.append(int(coef))
+            else:
+                ctr += 1
+        eigval = np.roots(coeffs)
+        eig_list = eigval.tolist()
+        for i in range(ctr):
+            eig_list.append(0)
+        self.eigvalues_1 = np.asarray(eig_list)
+        self.eigvalues_1.sort()
+        return self.eigvalues_1
+     
+    def D_1(self):
+        self.D_1 = np.zeros((len(self.AadjA), len(self.AadjA)))
+        for i in range(len(self.eigvalues_1)):
+            for j in range(len(self.eigvalues_1)):
+                if i == j:
+                    self.D_1[i][j] = sqrt(self.eigvalues_1[i])
+        return self.D_1
+
+    def C_1(self):
+        matrices_I_ref = []
+        eigv_not_orth_str = []
+        self.eigvec_1 = []
+        for i in range(len(self.eigvalues_1)):
+            self.eigvalues_1[i] = self.eigvalues_1[i] * 10000000 - self.eigvalues_1[i]*9999999
+            AadjA_minus_eigval = self.AadjA - self.eigvalues_1[i] * np.identity(len(self.AadjA))
+            AadjA_minus_eigval_T = np.transpose(AadjA_minus_eigval)
+            AadjA_minus_eigval_T_I = np.concatenate((AadjA_minus_eigval_T, np.identity(len(AadjA_minus_eigval_T))), axis = 1)
+            AadjA_minus_eigval_T_I_ref = common.ref(AadjA_minus_eigval_T_I)
+            AadjA_minus_eigval_Tref_Iref = np.split(AadjA_minus_eigval_T_I_ref, 2, axis = 1)
+            matrices_I_ref.append(AadjA_minus_eigval_Tref_Iref[1])
+        
+        for matrix in matrices_I_ref:
+            v = str(matrix[(len(matrix) - 1)])
+            if (v not in eigv_not_orth_str):
+                eigv_not_orth_str.append(v)
+            else:
+                j = 2
+                while v in eigv_not_orth_str:
+                    v = str(matrix[(len(matrix) - j)])
+                    j += 1
+                eigv_not_orth_str.append(v)
+        for string in eigv_not_orth_str:
+            s = re.split('\[|\]| ', string)
+            s1 = []
+            for i in range(len(s)):
+                if s[i] != "":
+                    s[i] = float(s[i])
+                    s1.append(s[i])
+            self.eigvec_1.append(s1)
+        self.eigvec_1 = common.orthogonalization(self.eigvec_1)
+        self.eigvec_1 = np.array(self.eigvec_1)
+        return self.eigvec_1
+
+    def H(self):
+        DC = np.dot(np.linalg.inv(self.eigvec_1),self.D_1)
+        self.H_ = np.dot(DC,self.eigvec_1)
+        return self.H_
+
+    def U(self):
+        self.U_ = np.dot(self.B_, self.eigvec)
+        return self.U_
+
+    def output(self):
+        print("H", self.H())
+        print("U", self.U())
+        print(np.dot(self.H(), self.U()))
+
+
+
 common = Common()
+square_root = Square_root()
 svd = SVD()
-svd.svd([[1,-2,0, 2],
+pd = PD()
+
+"""svd.svd([[1,-2,0, 2],
         [0,1,3, 1],
         [1,0,2, 1]])
-print(svd.adj())
-print(svd.find_char_pol())
-print(svd.coefficients())
+svd.adj()
+svd.find_char_pol()
+svd.coefficients()
 svd.D()
 svd.C()
 svd.B()
 svd.output()
+
+square_root.square_root([[33,24],[48,57]])
+square_root.find_char_pol()
+square_root.coefficients()
+square_root.D()
+square_root.C()
+print('root of A', square_root.final())"""
+# square_root.square_root([[4,2,4],
+#         [2,1,3],
+#         [1,0,5]])
+#square_root.square_root([[6,3],[2,7]])
+
+pd.pd([[1,-2,0],
+        [0,1,3],
+        [1,0,2]])
+pd.adj()
+pd.find_char_pol()
+pd.coefficients()
+pd.D()
+pd.C()
+pd.B()
+pd.find_char_pol_1()
+pd.coefficients_1()
+pd.D_1()
+pd.C_1()
+pd.H()
+pd.U()
+pd.output()
+
+#https://keisan.casio.com/exec/system/15076953160460
+#https://www.omnicalculator.com/math/polar-decomposition
