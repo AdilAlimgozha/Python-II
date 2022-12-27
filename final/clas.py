@@ -188,7 +188,7 @@ class Linear_alg:
             print("U", self.B())
             print("D", self.D())
             print("V*", self.C())
-            print(np.dot(np.dot(self.B_, self.D_), self.eigvec))
+            #print(np.dot(np.dot(self.B_, self.D_), self.eigvec))
 
 
     class Square_root:
@@ -268,7 +268,6 @@ class Linear_alg:
                             s[i] = float(s[i])
                             s1.append(s[i])
                     self.eigvec.append(s1)
-                self.eigvec = common.orthogonalization(self.eigvec)
                 self.eigvec = np.array(self.eigvec)
             except:"Square root for this matrix is not defined"
 
@@ -283,8 +282,8 @@ class Linear_alg:
                 DC = np.dot(np.linalg.inv(self.eigvec),self.D_)
                 final = np.dot(DC,self.eigvec)
             except:
-                return "Square root for this matrix is not defined"
-            return final
+                print("Square root for this matrix is not defined")
+            print(final)
 
     class PD:
         def pd(self, A):
@@ -471,9 +470,9 @@ class Linear_alg:
             self.coefficients_1()
             self.D_1()
             self.C_1()
-            print("H", self.H())
             print("U", self.U())
-            print(np.dot(self.U(), self.H()))
+            print("H", self.H())
+            #print(np.dot(self.U(), self.H()))
 
     class LU:
         def multiplication_of_matrix(self, A,B):
@@ -731,7 +730,51 @@ class Linear_alg:
                             L[i][j]=self.cholij(A, i,j,L)/L[j][j]
             except:
                 return "Matrix does not satisfy the conditions"
-            return L, L.transpose()
+            print("L", L)
+            print("L_t", L.transpose())
+
+    class LQ:
+        def LQ(self, A):
+            try:
+                A_t=np.transpose(A)
+                q1,q2,q3=gramm_schmidt.orthogonalization(A_t.transpose())
+                Q_t_transpose=np.vstack((q1,q2,q3))
+                Q_t=Q_t_transpose.transpose()
+                L=np.dot(A,Q_t)
+            except:
+                print('для такой матрицы разложения нету')
+            print("L", self.zeroize(L))
+            print("Q", self.zeroize(Q_t_transpose))
+        
+        def zeroize(self, matrix):
+            column=len(matrix)
+            row=len(matrix[0])
+            for i in range(column):
+                for j in range(row):
+                    if abs(matrix[i,j])<0.0000001:
+                        matrix[i,j]=0
+            return matrix
+
+    class QR:        
+        def QR(self, A):
+            try:
+                q1,q2,q3=gramm_schmidt.orthogonalization(np.transpose(A))
+                Q_transpose=np.vstack((q1,q2,q3))
+                Q = np.transpose(Q_transpose)
+                R = np.dot(Q_transpose,A)
+            except: 
+                print('для такой матрицы разложения нету')
+            print("Q", self.zeroize(Q))
+            print("R", self.zeroize(R))
+
+        def zeroize(self, matrix):
+            column=len(matrix)
+            row=len(matrix[0])
+            for i in range(column):
+                for j in range(row):
+                    if abs(matrix[i,j])<0.0000001:
+                        matrix[i,j]=0
+            return matrix
 
 
 linear_alg = Linear_alg
@@ -746,36 +789,8 @@ matrix_oper = linear_alg.Matrix_Oper()
 square_root = linear_alg.Square_root()
 
 chloskey = linear_alg.Cholesky()
-
-
-print(gramm_schmidt.orthogonalization([[1,2,3], [4,5,6]]))
-print()
-svd.svd([[1,-2,0, 2],
-        [0,1,3, 1],
-        [1,0,2, 1]])
-print()
-pd.pd([[1,-2,0],
-        [0,1,3],
-        [1,0,2]])
-print()
-lu.lu([[1,2,3],[2,1,0],[0,0,1]])
-print()
-print(matrix_oper.inverse([[1, 2], [2, 3]]))
-print()
-print(chloskey.Cholesky_decomposition([[13,7,4],
-                    [7,9,-3],
-                    [4,-3,9]]))
-
-print()
-print(square_root.square_root([[6, 3], [2, 7]]))
-
-
-"""square_root.square_root([[33,24],[48,57]])
-square_root.find_char_pol()
-square_root.coefficients()
-square_root.D()
-square_root.C()
-print('root of A', square_root.final())"""
+lq = linear_alg.LQ()
+qr = linear_alg.QR()
 # square_root.square_root([[4,2,4],
 #         [2,1,3],
 #         [1,0,5]])
